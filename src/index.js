@@ -1,123 +1,101 @@
 import React, { Component } from 'react' // destructuring so that we no longer need to write React.Component
 import ReactDOM from 'react-dom'
 
-// This is an ES6 class
-// All the names of the components must be started with an upper case letter
-class Message extends Component {
-    render() {
-        console.log(this.props)    
-        return (
-            <div>                
-                <h1 style={{ color: this.props.color }}>
-                    {this.props.msg} and has Time to live (TTL) of {this.props.ttl - 6}
-                </h1> 
-            </div>
-        )
-    }
-}
+let bookList = [
+    { "title": "The Sun also Rises", "author": "Ernest Hemingway", "pages": 260 },
+    { "title": "White Teeth", "author": "Zade Smith", "pages": 480 },
+    { "title": "Cat's Cradle", "author": "Kurt Von", "pages": 304 },
+    { "title": "Cat's Cradle II", "author": "Kurt Von", "pages": 302 }
+]
 
-let gymData = {
-    days: 10,
-    target: 30,
-    durationInMin: 60,
-    caloriesBurnt: 300
-}
-
-// using custom methods inside the React Component
-class GymDaysCounter extends React.Component {
-    getPercentage = decimal => {
-        return decimal * 100 + "%"
-    }
-
-    calculateGoalProgress = (completed, total) => {
-        return this.getPercentage(completed/total)
-    }
-    render() {
-        console.log(gymData)
-        const { days, target, duration, caloriesBurnt } = this.props // imported all here, so we no longer need to use this.props.<porperty_name>       
-        return (
-            <section>
-                Gym Counter
-                <div>
-                    <p>Total Days so far : {days}</p>
-                </div>
-                <div>
-                    <p>Target : {target}</p>
-                </div>
-                <div>
-                    <p>Total workout duration : {duration}</p>
-                </div>
-                <div>
-                    <p>Total Calories burnt per session : {caloriesBurnt}</p>
-                </div>
-                <div>
-                    <p>Goal Progress : {this.calculateGoalProgress(days, target)}</p>
-                </div>
-            </section>
-        )
-    }
-}
-
-// Another way to create React Components ->  using ES6 functions instead of classes 
-
-let skiData = {
-    totalDays: 50,
-    backcountryDays: 10,
-    powderDays: 20,
-    goal: 100
-}
-
-const getPercentage = decimal => {
-    return decimal * 100 + "%"
-}
-
-const calculateGoalProgress = (completed, total) => {
-    return getPercentage(completed/total) // no need for using this, since its not inside a React Component
-}
-
-const SkiDayCounter = (props) => {
+// this is a function component
+const Book = ({ title, author, pages, freeBookmark }) => {
     return (
         <section>
-            Ski Counter
-            <div>
-                <p>
-                    Total Days: {props.totalDays}
-                </p>
-            </div>
-            <div>
-                <p>
-                    Backcountry Days: {props.backcountryDays}
-                </p>
-            </div>
-            <div>
-                <p>
-                    Powder Days: {props.powderDays}
-                </p>
-            </div>
-            <div>
-                <p>
-                    Goal Progress: {calculateGoalProgress(props.totalDays, props.goal)}
-                </p>
-            </div>
+            <h2>{title}</h2>
+            <p>By: {author} </p>
+            <p>Pages: {pages} Pages</p>
+            <p>Free Bookmark today: {freeBookmark ? 'yes!' : 'no!'}</p>
         </section>
     )
 }
 
-// to render multiple components together, wrap them up in a single component using some HTML tag like div
-ReactDOM.render(
+// function component can also be created without the curly braces
+const Hiring = () => 
     <div>
-        <Message ttl="50" msg="This message is dynamic" color="blue" />
-        <br></br>
-        <SkiDayCounter
-            totalDays={skiData.totalDays}
-            backcountryDays={skiData.backcountryDays}
-            powderDays={skiData.powderDays}
-            goal={skiData.goal} />
-        <br></br>
-        <GymDaysCounter
-            days={gymData.days}
-            target={gymData.target}
-            duration={gymData.durationInMin}
-            caloriesBurnt={gymData.caloriesBurnt}/>
-    </div>,    
-    document.getElementById("root"))
+        <p>Library is now hiring! Check <a href="www.library.com/jobs">Library Jobs</a> for more.</p>
+    </div>
+
+const NotHiring = () => 
+    <div>
+        <p>Library is currently not hiring. Check back later for more info.</p>
+    </div>
+
+class Library extends Component {
+    // constructor(props) {
+    //     super(props)
+    //     this.state = {
+    //         open: false
+    //     }
+    //     this.toggleOpenClosed = this.toggleOpenClosed.bind(this) //this will bind the context of the current react 
+    //     // component to the toggleOpenClosed function
+    //     // if this line is not executed, the 'this' inside the toggleOpenClosed function will return null as it does not have the
+    //     // context of the Library Component.
+    //     // if we want to avoid writing this, we can use arrow fuction which automatically binds it to the current context
+    // }
+
+    state = {
+        open: false,
+        freeBookmark: false,
+        hiring: true
+    } // writing this will create a static variable & allow us to get rid of the entire constructor
+    // the binding was no longer required since an arrow function is used which automatiacally binds function to context
+
+    toggleOpenClosed = () => {
+        // setState is asynchronous so the below may not always work (since its dependent on previous state)
+        // this.setState({
+        //     open: !this.state.open
+        // })
+
+        // since its async, we pass in the previous state and used the data from that state to determine the new
+        // state. This will always gurantee that the state is set properly
+        this.setState(prevState => ({
+            open: !prevState.open
+        }))
+    }
+
+    render() {
+        const {books} = this.props
+        return (
+            <div>
+                {this.state.hiring ? <Hiring /> : <NotHiring /> /**Conditional rendering */} 
+                <h1>The Library is {this.state.open ? 'open' : 'closed'}</h1>
+                <button onClick={this.toggleOpenClosed}>Change</button>
+                {books.map(
+                    (book, i) => <Book title={book.title}
+                        author={book.author}
+                        pages={book.pages}
+                        key={i}
+                        freeBookmark={this.state.freeBookmark} /*Passing Parent component's state variable to child component*//>
+                )}                
+            </div>
+        )
+    }
+}
+
+// takes in a list of books
+// map is a JSX feature that loops over an array
+// const Library = ({ books }) => {
+//     return (
+//         <div>            
+//             {books.map(
+//                 (book, i) => <Book title={book.title} author={book.author} pages={book.pages} key={i}/>
+//             )}
+//         </div>
+//     )
+// }
+
+ReactDOM.render(
+    <Library books={bookList}/>,
+    document.getElementById("root")
+)
